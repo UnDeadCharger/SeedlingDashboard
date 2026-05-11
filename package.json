@@ -2,6 +2,7 @@
   "name": "react-template",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -29,6 +30,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^29.5.13",
+    "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.2",
@@ -49,6 +51,8 @@
     "axios": "1.14.0"
   },
   "lint-staged": {
-    "src/**/*.{ts,tsx}": ["biome check --apply"]
+    "src/**/*.{ts,tsx}": [
+      "biome check --apply"
+    ]
   }
 }
