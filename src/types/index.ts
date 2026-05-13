@@ -1,3 +1,28 @@
+export interface SeedlingData {
+  tempLvl: number;
+  moistureLvl: number;
+  luxLvl: number;
+  shtError: boolean;
+  luxError: boolean;
+  waterLvl: string;
+  waterLvlAlarm: boolean;
+  waterRawADC: number;
+  isLightOn: boolean;
+  isFanOn: boolean;
+  isFan2On: boolean;
+  fanBoost: boolean;
+  isMistingOn: boolean;
+  mode: "auto" | "manual";
+  phase: "germination" | "nursery" | "done";
+  germRemainingSeconds: number;
+  nurseryDay: number;
+  isDaytime: boolean;
+  fanCyclePos: number;
+  germHumidAlarm: boolean;
+  ntpOK: boolean;
+  wifiOK: boolean;
+}
+
 // Generic API response wrapper
 export interface ApiResponse<T> {
   data: T;

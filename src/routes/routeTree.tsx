@@ -1,6 +1,5 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { HomePage } from "@/pages/HomePage";
-import { UsersPage } from "@/pages/UsersPage";
+import HomePage from "@/pages/HomePage";
 import { Outlet, createRootRoute, createRoute } from "@tanstack/react-router";
 
 // Root layout route
@@ -27,10 +26,4 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-const usersRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/users",
-  component: UsersPage,
-});
-
-export const routeTree = rootRoute.addChildren([indexRoute, usersRoute]);
+export const routeTree = rootRoute.addChildren([indexRoute]);

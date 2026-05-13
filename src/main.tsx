@@ -1,4 +1,5 @@
 import "@/styles/index.css";
+import "@/styles/dashboard.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";
