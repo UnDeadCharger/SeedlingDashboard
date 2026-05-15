@@ -11,9 +11,8 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://your-worker.your-subdomain.workers.dev",
+        target: "https://seedling-system-api.rexfury121.workers.dev",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

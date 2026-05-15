@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { SeedlingData } from "@/types";
+import { apiClient } from "@/api/apiClient";
 
+import type { SeedlingData } from "@/types";
 type BooleanSeedlingField = {
   [Key in keyof SeedlingData]: SeedlingData[Key] extends boolean ? Key : never;
 }[keyof SeedlingData];
@@ -57,10 +58,9 @@ export function useSeedlingData(url: string, intervalMs = 3000) {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as Record<string, unknown>;
-      setData(normalizeSeedlingData(json));
+      console.log(`Fetching seedling data from ${url}...`);
+      const res = await apiClient.get(url);
+      setData(normalizeSeedlingData(res.data));
       setError(undefined);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to fetch seedling data");

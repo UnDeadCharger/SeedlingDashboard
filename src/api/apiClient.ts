@@ -2,11 +2,15 @@ import axios from "axios";
 
 import type { AxiosError } from "axios";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const VITE_API_KEY = import.meta.env.VITE_API_KEY;
+console.log("API Base URL:", VITE_API_BASE_URL, "API Key:", VITE_API_KEY);
 export const apiClient = axios.create({
   baseURL: VITE_API_BASE_URL,
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
+    Accept: "application/json",
+    "x-api-key": VITE_API_KEY || "",
   },
 });
 
@@ -30,7 +34,7 @@ apiClient.interceptors.response.use(
       case 401:
         // Token expired — clear storage and redirect to login
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        // window.location.href = "/login";
         break;
       case 403:
         console.error("Forbidden: You do not have permission to do this.");

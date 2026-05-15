@@ -1,5 +1,6 @@
 import "@/styles/index.css";
 import "@/styles/dashboard.css";
+import "@/styles/history.css";
 
 import React from "react";
 import ReactDOM from "react-dom/client";

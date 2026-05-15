@@ -21,6 +21,7 @@ export interface SeedlingData {
   germHumidAlarm: boolean;
   ntpOK: boolean;
   wifiOK: boolean;
+  receivedAt: string;
 }
 
 // Generic API response wrapper

@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 
+import { apiClient } from "@/api/apiClient";
+
 /**
  * Returns a `send` function that POSTs a command to the API.
  * The ESP32 picks up the command on its next 3-second POST cycle.
@@ -27,12 +29,11 @@ export function useSendCommand(url: string) {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(url, {
-          method: "POST",
+        const res = await apiClient.post(url, {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ commands: [payload] }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        console.log("Command response:", res.data);
         // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       } catch (err: any) {
         setError(err.message);

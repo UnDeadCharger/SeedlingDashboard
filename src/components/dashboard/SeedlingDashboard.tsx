@@ -67,6 +67,7 @@ const DUMMY_DATA: SeedlingData = {
   germHumidAlarm: false,
   ntpOK: true,
   wifiOK: true,
+  receivedAt: new Date().toISOString(),
 };
 
 function SeedlingDashboard({ data: extData, onCommand = () => {} }: SeedlingDashboardProps) {
