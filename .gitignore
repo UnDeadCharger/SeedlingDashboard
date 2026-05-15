@@ -40,3 +40,5 @@ Thumbs.db
 
 # Vite
 *.local
+.dev.vars
+.env.production

@@ -1,4 +1,5 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import HistoryPage from "@/pages/HistoryPage";
 import HomePage from "@/pages/HomePage";
 import { Outlet, createRootRoute, createRoute } from "@tanstack/react-router";
 
@@ -26,4 +27,10 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-export const routeTree = rootRoute.addChildren([indexRoute]);
+const historyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/history",
+  component: HistoryPage,
+});
+
+export const routeTree = rootRoute.addChildren([indexRoute, historyRoute]);

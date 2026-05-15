@@ -1,0 +1,35 @@
+/** All fields written to CSV — order determines column order */
+export const CSV_FIELDS = [
+  "receivedAt",
+  "tempLvl",
+  "moistureLvl",
+  "luxLvl",
+  "waterLvl",
+  "waterRawADC",
+  "isLightOn",
+  "isFanOn",
+  "isFan2On",
+  "fanBoost",
+  "isMistingOn",
+  "mode",
+  "phase",
+  "germRemainingSeconds",
+  "nurseryDay",
+  "isDaytime",
+  "fanCyclePos",
+  "germHumidAlarm",
+  "waterLvlAlarm",
+  "shtError",
+  "luxError",
+  "ntpOK",
+  "wifiOK",
+];
+
+export const CHART_COLORS = {
+  temp: "#ff5252",
+  humid: "#4fc3f7",
+  lux: "#f5a623",
+  light: "#f5a623",
+  fan: "#3ddc7a",
+  mist: "#4fc3f7",
+};
