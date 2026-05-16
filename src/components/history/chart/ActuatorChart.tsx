@@ -14,8 +14,8 @@ import { fmtXLabel } from "@/utils/historyHelper";
 import ChartTooltip from "./ChartTooltip";
 import EmptyState from "./EmptyState";
 
-import type { SeedlingData } from "@/types";
-function ActuatorChart({ data }: { data: SeedlingData[] }) {
+import type { ChartDataPoint } from "@/types";
+function ActuatorChart({ data }: { data: ChartDataPoint[] }) {
   const interval = Math.max(1, Math.floor(data.length / 12));
   return (
     <div className="chart-card">
@@ -39,7 +39,7 @@ function ActuatorChart({ data }: { data: SeedlingData[] }) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1c3d28" />
             <XAxis
-              dataKey="receivedAt"
+              dataKey="hour"
               tickFormatter={fmtXLabel}
               interval={interval}
               tick={{ fill: "#5d9970", fontSize: 11 }}

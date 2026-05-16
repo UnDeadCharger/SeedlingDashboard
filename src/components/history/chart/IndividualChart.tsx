@@ -13,9 +13,9 @@ import { fmtXLabel } from "@/utils/historyHelper";
 import ChartTooltip from "./ChartTooltip";
 import EmptyState from "./EmptyState";
 
-import type { SeedlingData, avgTypes } from "@/types";
+import type { ChartDataPoint, avgTypes } from "@/types";
 type IndividualChartProps = {
-  data: SeedlingData[];
+  data: ChartDataPoint[];
   dataKey: keyof typeof avgTypes;
   title: string;
   color: string;
@@ -26,6 +26,11 @@ type IndividualChartProps = {
 function IndividualChart({ data, dataKey, title, color, unit, yDomain }: IndividualChartProps) {
   const interval = Math.max(1, Math.floor(data.length / 8));
   const gradId = `grad-${dataKey}`;
+  console.log("Rendering IndividualChart", {
+    dataKey,
+    dataLength: data.length,
+    yDomain,
+  });
   return (
     <div className="chart-card">
       <div className="chart-title" style={{ color }}>
@@ -44,7 +49,7 @@ function IndividualChart({ data, dataKey, title, color, unit, yDomain }: Individ
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1c3d28" />
             <XAxis
-              dataKey="receivedAt"
+              dataKey="hour"
               tickFormatter={fmtXLabel}
               interval={interval}
               tick={{ fill: "#5d9970", fontSize: 10 }}
@@ -59,19 +64,10 @@ function IndividualChart({ data, dataKey, title, color, unit, yDomain }: Individ
               width={40}
               tickFormatter={(v) => `${v}${unit}`}
             />
-            <Tooltip
-              content={
-                <ChartTooltip
-                  active={undefined}
-                  payload={undefined}
-                  label={undefined}
-                  pctMode={undefined}
-                />
-              }
-            />
+            <Tooltip content={<ChartTooltip />} />
             <Area
               type="monotone"
-              dataKey={dataKey} //TODO: CHECK IF FAIL TO RENDER
+              dataKey={dataKey}
               stroke={color}
               fill={`url(#${gradId})`}
               dot={false}

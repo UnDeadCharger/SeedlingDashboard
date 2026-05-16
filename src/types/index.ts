@@ -23,6 +23,15 @@ export interface SeedlingData {
   wifiOK: boolean;
   receivedAt: string;
 }
+export interface ChartDataPoint {
+  hour: string; // ISO string truncated to hour, e.g. "2024-05-01T14:00:00Z"
+  avgTemp: number;
+  avgHumid: number;
+  avgLux: number;
+  lightOnPct: boolean | 1 | 0; // 0 to 1
+  fanOnPct: boolean | 1 | 0; // 0 to 1
+  mistOnPct: boolean | 1 | 0; // 0 to 1
+}
 
 // Generic API response wrapper
 export interface ApiResponse<T> {

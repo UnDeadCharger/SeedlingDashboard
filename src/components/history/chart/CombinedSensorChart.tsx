@@ -14,9 +14,9 @@ import { fmtXLabel } from "@/utils/historyHelper";
 import ChartTooltip from "./ChartTooltip";
 import EmptyState from "./EmptyState";
 
-import type { SeedlingData, avgTypes } from "@/types";
+import type { ChartDataPoint, avgTypes } from "@/types";
 type CombinedSensorChartProps = {
-  data: SeedlingData[];
+  data: ChartDataPoint[];
   visible: {
     avgTemp: boolean;
     avgHumid: boolean;
@@ -75,7 +75,7 @@ function CombinedSensorChart({ data, visible, onToggle }: CombinedSensorChartPro
           <LineChart data={data} margin={{ top: 4, right: 60, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#1c3d28" />
             <XAxis
-              dataKey="receivedAt"
+              dataKey="hour"
               tickFormatter={fmtXLabel}
               interval={interval}
               tick={{ fill: "#5d9970", fontSize: 11 }}

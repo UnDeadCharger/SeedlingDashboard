@@ -17,83 +17,20 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
+import { apiClient } from "@/api/apiClient";
 import ApiDocs from "@/components/history/ApiDocs";
 import ActuatorChart from "@/components/history/chart/ActuatorChart";
 import CombinedSensorChart from "@/components/history/chart/CombinedSensorChart";
 import IndividualChart from "@/components/history/chart/IndividualChart";
 import DateRangeBar from "@/components/history/table/DateRangeBar";
 import SimpleTable from "@/components/history/table/SimpleTable";
-import { defaultFrom, defaultTo, exportToCSV, filterByRange } from "@/utils/historyHelper";
+import { useChartData } from "@/hooks/useChartData";
+import { useHistoryData } from "@/hooks/useHistoryData";
+import { defaultFrom, defaultTo, exportToCSV } from "@/utils/historyHelper";
 
-import type { SeedlingData, avgTypes } from "@/types";
-/* ══════════════════════════════════════════════════════════════════
-   DUMMY DATA  — replace with your API calls
-══════════════════════════════════════════════════════════════════ */
-
-/** Generates hourly-averaged chart data for the last `hours` hours */
-function generateHourlyData(hours = 168) {
-  const now = Date.now();
-  return Array.from({ length: hours }, (_, i) => {
-    const ts = new Date(now - (hours - 1 - i) * 3_600_000);
-    const h = ts.getHours();
-    const day = h >= 6 && h < 18;
-    const s = Math.sin;
-    return {
-      receivedAt: ts.toISOString(),
-      avgTemp: +(23 + s(i / 12) * 3 + (day ? 2 : 0) + (Math.random() - 0.5)).toFixed(1),
-      avgHumid: +(70 + s(i / 10) * 8 + (Math.random() - 0.5) * 3).toFixed(1),
-      avgLux: day
-        ? +(2000 + s(((h - 6) / 12) * Math.PI) * 3500 + Math.random() * 300).toFixed(0)
-        : +(Math.random() * 20).toFixed(0),
-      lightOnPct: day ? +(0.92 + Math.random() * 0.08).toFixed(2) : 0,
-      fanOnPct: day ? 1 : Math.random() > 0.25 ? 0.75 : 0.1,
-      mistOnPct: +(Math.random() * 0.3).toFixed(2),
-    };
-  });
-}
-
-/** Generates raw row data (1 row per 3-second POST) */
-function generateTableData(rows = 350): SeedlingData[] {
-  const now = Date.now();
-  return Array.from({ length: rows }, (_, i) => {
-    const ts = new Date(now - i * 3_000);
-    const h = ts.getHours();
-    const day = h >= 6 && h < 18;
-    const phase = i < 60 ? "germination" : "nursery";
-    const temp = +(23 + Math.sin(i / 50) * 3 + (Math.random() - 0.5)).toFixed(1);
-    const humid = +(70 + Math.sin(i / 40) * 8 + (Math.random() - 0.5) * 2).toFixed(1);
-    const lux = day ? Math.round(2000 + Math.random() * 3000) : Math.round(Math.random() * 20);
-    const adc = Math.round(1100 + Math.random() * 600);
-    return {
-      id: rows - i,
-      receivedAt: ts.toISOString(),
-      tempLvl: temp,
-      moistureLvl: humid,
-      luxLvl: lux,
-      waterLvl: adc < 1000 ? "Under" : adc > 1800 ? "Over" : "Normal",
-      waterRawADC: adc,
-      isLightOn: day && phase === "nursery",
-      isFanOn: phase === "nursery" && day,
-      isFan2On: phase === "nursery" && day,
-      fanBoost: temp > 30 || humid > 95,
-      isMistingOn: humid < 70,
-      mode: Math.random() > 0.9 ? "manual" : "auto",
-      phase,
-      germRemainingSeconds: phase === "germination" ? Math.max(0, 86400 - i * 3) : 0,
-      nurseryDay: phase === "nursery" ? Math.floor(((i - 60) * 3) / 86400) + 1 : 0,
-      isDaytime: day,
-      fanCyclePos: ts.getMinutes() % 20,
-      germHumidAlarm: phase === "germination" && humid < 70,
-      waterLvlAlarm: adc < 1000,
-      shtError: Math.random() < 0.005,
-      luxError: Math.random() < 0.005,
-      ntpOK: true,
-      wifiOK: true,
-    };
-  });
-}
+import type { avgTypes } from "@/types";
 
 export default function HistoryPage() {
   // Shared view filter
@@ -115,30 +52,52 @@ export default function HistoryPage() {
   });
   const toggleLine = (key: keyof typeof avgTypes) => setVisible((v) => ({ ...v, [key]: !v[key] }));
 
-  // Dummy data (generated once)
-  const allChart = useMemo(() => generateHourlyData(168), []);
-  const allTable = useMemo(() => generateTableData(350), []);
-
   // Filtered slices
-  const chartData = useMemo(
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    () => filterByRange(allChart as any, fromDt, toDt),
-    [allChart, fromDt, toDt]
-  );
-  const tableData = useMemo(() => filterByRange(allTable, fromDt, toDt), [allTable, fromDt, toDt]);
-  const exportData = useMemo(
-    () => filterByRange(allTable, expFrom, expTo),
-    [allTable, expFrom, expTo]
-  );
+  const {
+    data: chartData,
+    // loading: chartLoading,
+    // error: chartError,
+  } = useChartData({
+    startTime: fromDt,
+    endTime: toDt,
+  });
 
-  const handleExport = () => {
+  const {
+    rows: tableData,
+    // total,
+    // totalPages,
+    // loading: tableLoading,
+    // error: tableError,
+  } = useHistoryData({
+    startTime: fromDt,
+    endTime: toDt,
+    page: 1,
+    pageSize: 50, // get all for export (in real app, implement proper pagination)
+    sortBy: "receivedAt",
+    sortDir: "desc",
+  });
+
+  const handleExport = async () => {
     const tag = expFrom.slice(0, 10);
-    exportToCSV(exportData, `seedling-${tag}.csv`);
+    try {
+      const params = new URLSearchParams({
+        ...(expFrom && { from: expFrom }),
+        ...(expTo && { to: expTo }),
+      });
+
+      const res = await apiClient.get(`/export?${params}`);
+      const data = res.data;
+      console.log("Fetched export data:", data);
+      exportToCSV(data, `seedling_history_${tag}.csv`);
+    } catch (err) {
+      console.error("Export API error:", err);
+      alert("Failed to fetch export data. See console for details.");
+      return;
+    }
   };
 
   return (
     <div className="dash">
-      \{" "}
       <div className="wrap">
         {/* Header */}
         <div className="hdr">
@@ -156,7 +115,7 @@ export default function HistoryPage() {
           to={toDt}
           onFrom={setFromDt}
           onTo={setToDt}
-          note={`${chartData.length} hourly pts · ${tableData.length} raw rows`}
+          note={`${chartData?.length} hourly pts · ${tableData?.length} raw rows`}
         />
 
         {/* Tab switcher */}
@@ -234,7 +193,7 @@ export default function HistoryPage() {
                 note={undefined}
               />
               <button type="button" className="export-btn" onClick={handleExport}>
-                ↓ Export {exportData.length.toLocaleString()} rows
+                ↓ Export rows
               </button>
             </div>
 
