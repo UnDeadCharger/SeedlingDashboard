@@ -2,6 +2,8 @@ import { useCallback, useState } from "react";
 
 import { apiClient } from "@/api/apiClient";
 
+import type { OnCommandProp } from "@/types/commands";
+
 /**
  * Returns a `send` function that POSTs a command to the API.
  * The ESP32 picks up the command on its next 3-second POST cycle.
@@ -20,29 +22,23 @@ import { apiClient } from "@/api/apiClient";
  *   await send({ cmd: "stop" });
  *   await send({ cmd: "reboot" });
  */
-export function useSendCommand(url: string) {
+
+export function useSendCommand() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const send = useCallback(
-    async (payload: object) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await apiClient.post(url, {
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ commands: [payload] }),
-        });
-        console.log("Command response:", res.data);
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [url]
-  );
+  const send = useCallback((payload: OnCommandProp) => {
+    setLoading(true);
+    setError(null);
+    try {
+      apiClient.post("/commands", payload);
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return { send, loading, error };
 }

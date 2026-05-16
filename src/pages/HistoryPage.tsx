@@ -85,7 +85,7 @@ export default function HistoryPage() {
         ...(expTo && { to: expTo }),
       });
 
-      const res = await apiClient.get(`/export?${params}`);
+      const res = await apiClient.get(`/seedling/export?${params}`);
       const data = res.data;
       console.log("Fetched export data:", data);
       exportToCSV(data, `seedling_history_${tag}.csv`);

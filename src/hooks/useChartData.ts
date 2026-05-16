@@ -41,7 +41,7 @@ export function useChartData({
         ...(endTime && { to: endTime }),
       });
 
-      const res = await apiClient.get(`/chart?${params}`);
+      const res = await apiClient.get(`/seedling/chart?${params}`);
       console.log(res);
       console.log("Fetched chart data:", res.data);
       setData(res.data);

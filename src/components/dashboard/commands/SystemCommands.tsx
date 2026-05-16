@@ -1,11 +1,10 @@
 import { useState } from "react";
 
+import { DeviceCommand, type OnCommandProp } from "@/types/commands";
+
 interface SystemCommandsProps {
   phase: "germination" | "nursery" | "done";
-  onCommand: (payload: {
-    cmd: string;
-    params?: Record<string, unknown>;
-  }) => void;
+  onCommand: (payload: OnCommandProp) => void;
 }
 
 /** System command buttons — phase toggle + reboot */
@@ -14,7 +13,7 @@ function SystemCommands({ phase, onCommand }: SystemCommandsProps) {
 
   const handleReboot = () => {
     if (confirmReboot) {
-      onCommand({ cmd: "reboot" });
+      onCommand({ cmd: DeviceCommand.Reboot });
       setConfirmReboot(false);
     } else {
       setConfirmReboot(true);
@@ -31,7 +30,12 @@ function SystemCommands({ phase, onCommand }: SystemCommandsProps) {
         <button
           type="button"
           className="cmd-btn cmd-btn-phase-germ"
-          onClick={() => onCommand({ cmd: "set_phase", params: { phase: "germination" } })}
+          onClick={() =>
+            onCommand({
+              cmd: DeviceCommand.SetPhase,
+              params: { phase: "germination" },
+            })
+          }
         >
           <span className="cmd-btn-ico">🌱</span>
           Start Germination
@@ -41,13 +45,22 @@ function SystemCommands({ phase, onCommand }: SystemCommandsProps) {
         <button
           type="button"
           className="cmd-btn"
-          onClick={() => onCommand({ cmd: "set_phase", params: { phase: "nursery" } })}
+          onClick={() =>
+            onCommand({
+              cmd: DeviceCommand.SetPhase,
+              params: { phase: "nursery" },
+            })
+          }
         >
           <span className="cmd-btn-ico">⏩</span>
           Skip to Nursery
         </button>
       )}
-      <button type="button" className="cmd-btn" onClick={() => onCommand({ cmd: "stop" })}>
+      <button
+        type="button"
+        className="cmd-btn"
+        onClick={() => onCommand({ cmd: DeviceCommand.Stop })}
+      >
         <span className="cmd-btn-ico">⏹</span>
         Stop All
       </button>

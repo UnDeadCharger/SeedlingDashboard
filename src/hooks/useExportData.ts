@@ -22,7 +22,7 @@ export function useExportData({
         ...(endTime && { to: endTime }),
       });
 
-      const res = await apiClient.get(`/export?${params}`);
+      const res = await apiClient.get(`/seedling/export?${params}`);
       console.log(res);
       console.log("Fetched export data:", res.data);
       setData(res.data);

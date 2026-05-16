@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 
 import { PHASE_STEPS } from "@/constants";
+import { DeviceCommand, type OnCommandProp } from "@/types/commands";
+import { Link } from "@tanstack/react-router";
 
+//
+import type { SeedlingData } from "@/types";
 import SystemCommands from "./commands/SystemCommands";
 import ManualPanel from "./controls/ManualPanel";
 import DeviceCard from "./devices/DeviceCard";
@@ -13,14 +17,9 @@ import CountdownCard from "./status/CountdownCard";
 import NurseryDayCard from "./status/NurseryDayCard";
 import { PhaseTimeline } from "./status/PhaseTimeline";
 import WaterCard from "./status/WaterCard";
-
-import type { SeedlingData } from "@/types";
 interface SeedlingDashboardProps {
   data?: SeedlingData;
-  onCommand?: (payload: {
-    cmd: string;
-    params?: Record<string, unknown>;
-  }) => void;
+  onCommand: (payload: OnCommandProp) => void;
 }
 /* ════════════════════════════════════════════════════════════════════════════
    SEEDLING GERMINATION / NURSERY DASHBOARD  v3
@@ -70,41 +69,38 @@ const DUMMY_DATA: SeedlingData = {
   receivedAt: new Date().toISOString(),
 };
 
-function SeedlingDashboard({ data: extData, onCommand = () => {} }: SeedlingDashboardProps) {
+function SeedlingDashboard({ data: extData, onCommand }: SeedlingDashboardProps) {
   // Demo simulation — only used when no external data is passed
-  const [demoData, setDemoData] = useState<SeedlingData>(DUMMY_DATA);
-  const data = extData ?? demoData;
+  const data = extData ?? DUMMY_DATA;
 
-  const sendCmd = (payload: {
-    cmd: string;
-    params?: Record<string, unknown>;
-  }) => {
+  const sendCmd = (payload: OnCommandProp) => {
     onCommand(payload);
     // Simulate locally for demo (extData = undefined)
-    //Do not send api for now
-    if (!extData) {
-      const { cmd, params = {} } = payload;
-      setDemoData((d: SeedlingData) => {
-        if (cmd === "set_mode") return { ...d, mode: params.mode as SeedlingData["mode"] };
-        if (cmd === "set_phase")
-          return {
-            ...d,
-            phase: params.phase as SeedlingData["phase"],
-            germRemainingSeconds: params.phase === "germination" ? 86400 : 0,
-            isFanOn: false,
-            isFan2On: false,
-          };
-        if (cmd === "stop")
-          return {
-            ...d,
-            isLightOn: false,
-            isFanOn: false,
-            isFan2On: false,
-            isMistingOn: false,
-          };
-        return d;
-      });
-    }
+    // //Do not send api for now
+    // if (!extData) {
+    //   const { cmd, params = {} } = payload;
+    //   setDemoData((d: SeedlingData) => {
+    //     if (cmd === DeviceCommand.SetMode)
+    //       return { ...d, mode: params.mode as SeedlingData["mode"] };
+    //     if (cmd === DeviceCommand.SetPhase)
+    //       return {
+    //         ...d,
+    //         phase: params.phase as SeedlingData["phase"],
+    //         germRemainingSeconds: params.phase === "germination" ? 86400 : 0,
+    //         isFanOn: false,
+    //         isFan2On: false,
+    //       };
+    //     if (cmd === DeviceCommand.Stop)
+    //       return {
+    //         ...d,
+    //         isLightOn: false,
+    //         isFanOn: false,
+    //         isFan2On: false,
+    //         isMistingOn: false,
+    //       };
+    //     return d;
+    //   });
+    // }
   };
 
   // Live countdown — ticks down during germination
@@ -206,7 +202,12 @@ function SeedlingDashboard({ data: extData, onCommand = () => {} }: SeedlingDash
                   type="button"
                   key={mo}
                   className={`mode-btn ${data.mode === mo ? `mode-active-${mo}` : ""}`}
-                  onClick={() => sendCmd({ cmd: "set_mode", params: { mode: mo } })}
+                  onClick={() =>
+                    sendCmd({
+                      cmd: DeviceCommand.SetMode,
+                      params: { mode: mo as SeedlingData["mode"] },
+                    })
+                  }
                 >
                   {mo === "auto" ? "⚙ Auto" : "⏱ Manual"}
                 </button>
@@ -221,7 +222,7 @@ function SeedlingDashboard({ data: extData, onCommand = () => {} }: SeedlingDash
                 className="phase-btn"
                 onClick={() =>
                   sendCmd({
-                    cmd: "set_phase",
+                    cmd: DeviceCommand.SetPhase,
                     params: { phase: "germination" },
                   })
                 }
@@ -232,11 +233,22 @@ function SeedlingDashboard({ data: extData, onCommand = () => {} }: SeedlingDash
               <button
                 type="button"
                 className="phase-btn"
-                onClick={() => sendCmd({ cmd: "set_phase", params: { phase: "nursery" } })}
+                onClick={() =>
+                  sendCmd({
+                    cmd: DeviceCommand.SetPhase,
+                    params: { phase: "nursery" },
+                  })
+                }
               >
                 ⏩ Skip to Nursery
               </button>
             )}
+          </div>
+          <div className="ctrl-block">
+            <div className="ctrl-lbl">Go To</div>
+            <Link to="/history" className="phase-btn" style={{ textDecoration: "none" }}>
+              📋 History
+            </Link>
           </div>
         </div>
 

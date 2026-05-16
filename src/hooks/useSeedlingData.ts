@@ -51,15 +51,14 @@ function normalizeSeedlingData(rawData: Record<string, unknown>): SeedlingData {
  * Usage:
  *   const { data, loading, error } = useSeedlingData("/api/seedling");
  */
-export function useSeedlingData(url: string, intervalMs = 3000) {
+export function useSeedlingData(intervalMs = 3000) {
   const [data, setData] = useState<SeedlingData | undefined>(undefined);
   const [loading, setLoading] = useState(true); // true only on first load
   const [error, setError] = useState<string | undefined>(undefined);
 
   const fetchData = useCallback(async () => {
     try {
-      console.log(`Fetching seedling data from ${url}...`);
-      const res = await apiClient.get(url);
+      const res = await apiClient.get("/seedling/latest");
       setData(normalizeSeedlingData(res.data));
       setError(undefined);
     } catch (err: unknown) {
@@ -67,7 +66,7 @@ export function useSeedlingData(url: string, intervalMs = 3000) {
     } finally {
       setLoading(false);
     }
-  }, [url]);
+  }, []);
 
   // Initial fetch + polling interval
   useEffect(() => {

@@ -65,7 +65,7 @@ export function useHistoryData({
         ...(startTime && { from: startTime }),
         ...(endTime && { to: endTime }),
       });
-      const res = await apiClient.get(`/history?${params}`);
+      const res = await apiClient.get(`/seedling/history?${params}`);
       setRows(res.data.rows);
       setTotal(res.data.total);
     } catch (err: unknown) {

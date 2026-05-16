@@ -1,14 +1,13 @@
 import SeedlingDashboard from "@/components/dashboard/SeedlingDashboard";
 import { useSeedlingData } from "@/hooks/useSeedlingData";
+import { useSendCommand } from "@/hooks/useSendCommand";
 
 // import { useSendCommand } from "@/hooks/useSendCommand";
 
-const API_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default function HomePage() {
   // Poll every 3 seconds (matches ESP32 POST interval)
-  const { data, loading, error } = useSeedlingData(`${API_URL}/latest`, 10000);
-  // const { send } = useSendCommand(API_URL);
+  const { data, loading, error } = useSeedlingData(10000);
+  const { send } = useSendCommand();
 
   if (loading) {
     return (
@@ -46,5 +45,5 @@ export default function HomePage() {
     );
   }
 
-  return <SeedlingDashboard data={data} onCommand={() => {}} />;
+  return <SeedlingDashboard data={data} onCommand={send} />;
 }

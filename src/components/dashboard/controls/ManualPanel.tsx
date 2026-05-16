@@ -1,12 +1,10 @@
 import { useState } from "react";
 
 import Stepper from "@/components/ui/Stepper";
+import { DeviceCommand, type OnCommandProp } from "@/types/commands";
 
 interface ManualPanelProps {
-  onCommand: (payload: {
-    cmd: string;
-    params?: Record<string, unknown>;
-  }) => void;
+  onCommand: (payload: OnCommandProp) => void;
 }
 
 /** Manual control panel — timer inputs + run/stop */
@@ -17,7 +15,7 @@ function ManualPanel({ onCommand }: ManualPanelProps) {
 
   const handleRun = () => {
     onCommand({
-      cmd: "manual_run",
+      cmd: DeviceCommand.ManualRun,
       params: { light: lightMins, fan: fanMins, mist: mistMins },
     });
   };
@@ -55,7 +53,11 @@ function ManualPanel({ onCommand }: ManualPanelProps) {
         <button type="button" className="run-btn" onClick={handleRun}>
           ▶ Run Timers
         </button>
-        <button type="button" className="stop-btn" onClick={() => onCommand({ cmd: "stop" })}>
+        <button
+          type="button"
+          className="stop-btn"
+          onClick={() => onCommand({ cmd: DeviceCommand.Stop })}
+        >
           ⏹ Stop All
         </button>
       </div>
