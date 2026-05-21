@@ -3,7 +3,6 @@ import axios from "axios";
 import type { AxiosError } from "axios";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const VITE_API_KEY = import.meta.env.VITE_API_KEY;
-console.log("API Base URL:", VITE_API_BASE_URL, "API Key:", VITE_API_KEY);
 export const apiClient = axios.create({
   baseURL: VITE_API_BASE_URL,
   timeout: 10000,

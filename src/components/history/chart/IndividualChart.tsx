@@ -8,7 +8,7 @@ import {
   YAxis,
 } from "recharts";
 
-import { fmtXLabel } from "@/utils/historyHelper";
+import { fmtXLabelCondensed } from "@/utils/historyHelper";
 
 import ChartTooltip from "./ChartTooltip";
 import EmptyState from "./EmptyState";
@@ -26,11 +26,6 @@ type IndividualChartProps = {
 function IndividualChart({ data, dataKey, title, color, unit, yDomain }: IndividualChartProps) {
   const interval = Math.max(1, Math.floor(data.length / 8));
   const gradId = `grad-${dataKey}`;
-  console.log("Rendering IndividualChart", {
-    dataKey,
-    dataLength: data.length,
-    yDomain,
-  });
   return (
     <div className="chart-card">
       <div className="chart-title" style={{ color }}>
@@ -50,7 +45,7 @@ function IndividualChart({ data, dataKey, title, color, unit, yDomain }: Individ
             <CartesianGrid strokeDasharray="3 3" stroke="#1c3d28" />
             <XAxis
               dataKey="hour"
-              tickFormatter={fmtXLabel}
+              tickFormatter={fmtXLabelCondensed}
               interval={interval}
               tick={{ fill: "#5d9970", fontSize: 10 }}
               tickLine={false}

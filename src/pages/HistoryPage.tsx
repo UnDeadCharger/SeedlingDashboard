@@ -20,12 +20,11 @@
 import { useState } from "react";
 
 import { apiClient } from "@/api/apiClient";
-import ApiDocs from "@/components/history/ApiDocs";
 import ActuatorChart from "@/components/history/chart/ActuatorChart";
 import CombinedSensorChart from "@/components/history/chart/CombinedSensorChart";
 import IndividualChart from "@/components/history/chart/IndividualChart";
+import { DataTable } from "@/components/history/table/DataTable";
 import DateRangeBar from "@/components/history/table/DateRangeBar";
-import SimpleTable from "@/components/history/table/SimpleTable";
 import { useChartData } from "@/hooks/useChartData";
 import { useHistoryData } from "@/hooks/useHistoryData";
 import { defaultFrom, defaultTo, exportToCSV } from "@/utils/historyHelper";
@@ -37,12 +36,33 @@ export default function HistoryPage() {
   const [fromDt, setFromDt] = useState(defaultFrom);
   const [toDt, setToDt] = useState(defaultTo);
 
-  // Separate export range (defaults to match view filter)
-  const [expFrom, setExpFrom] = useState(defaultFrom);
-  const [expTo, setExpTo] = useState(defaultTo);
-
   // Tab
   const [tab, setTab] = useState("charts");
+
+  // Pagination / sort state for DataTable
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [sortBy, setSortBy] = useState<string>("receivedAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  // 30-day max range clamp handlers
+  const MAX_RANGE_MS = 30 * 86_400_000;
+  const handleFromDt = (v: string) => {
+    setFromDt(v);
+    if (toDt && v) {
+      const diff = new Date(toDt).getTime() - new Date(v).getTime();
+      if (diff > MAX_RANGE_MS)
+        setToDt(new Date(new Date(v).getTime() + MAX_RANGE_MS).toISOString().slice(0, 16));
+    }
+  };
+  const handleToDt = (v: string) => {
+    setToDt(v);
+    if (fromDt && v) {
+      const diff = new Date(v).getTime() - new Date(fromDt).getTime();
+      if (diff > MAX_RANGE_MS)
+        setFromDt(new Date(new Date(v).getTime() - MAX_RANGE_MS).toISOString().slice(0, 16));
+    }
+  };
 
   // Combined chart line visibility toggles
   const [visible, setVisible] = useState({
@@ -64,30 +84,27 @@ export default function HistoryPage() {
 
   const {
     rows: tableData,
-    // total,
-    // totalPages,
-    // loading: tableLoading,
-    // error: tableError,
+    total,
+    totalPages,
+    loading: tableLoading,
   } = useHistoryData({
     startTime: fromDt,
     endTime: toDt,
-    page: 1,
-    pageSize: 50, // get all for export (in real app, implement proper pagination)
-    sortBy: "receivedAt",
-    sortDir: "desc",
+    page,
+    pageSize,
+    sortBy,
+    sortDir,
   });
 
   const handleExport = async () => {
-    const tag = expFrom.slice(0, 10);
+    const tag = fromDt.slice(0, 10);
     try {
       const params = new URLSearchParams({
-        ...(expFrom && { from: expFrom }),
-        ...(expTo && { to: expTo }),
+        ...(fromDt && { from: fromDt }),
+        ...(toDt && { to: toDt }),
       });
-
       const res = await apiClient.get(`/seedling/export?${params}`);
       const data = res.data;
-      console.log("Fetched export data:", data);
       exportToCSV(data, `seedling_history_${tag}.csv`);
     } catch (err) {
       console.error("Export API error:", err);
@@ -113,8 +130,8 @@ export default function HistoryPage() {
         <DateRangeBar
           from={fromDt}
           to={toDt}
-          onFrom={setFromDt}
-          onTo={setToDt}
+          onFrom={handleFromDt}
+          onTo={handleToDt}
           note={`${chartData?.length} hourly pts · ${tableData?.length} raw rows`}
         />
 
@@ -171,9 +188,11 @@ export default function HistoryPage() {
         )}
 
         {/* ── TABLE TAB ──────────────────────────────────────────── */}
+
+        {/* ── TABLE TAB ──────────────────────────────────────────── */}
         {tab === "table" && (
           <>
-            {/* CSV export panel — separate range from view filter */}
+            {/* CSV export panel — uses current view date range */}
             <div className="export-panel">
               <span
                 style={{
@@ -185,30 +204,36 @@ export default function HistoryPage() {
               >
                 📥 CSV Export
               </span>
-              <DateRangeBar
-                from={expFrom}
-                to={expTo}
-                onFrom={setExpFrom}
-                onTo={setExpTo}
-                note={undefined}
-              />
+              <span style={{ fontSize: "0.72rem", color: "var(--text-s)" }}>
+                Exports current view range: {fromDt.slice(0, 10)} → {toDt.slice(0, 10)}
+              </span>
               <button type="button" className="export-btn" onClick={handleExport}>
                 ↓ Export rows
               </button>
             </div>
 
-            <SimpleTable data={tableData} />
+            <DataTable
+              rows={tableData}
+              total={total}
+              totalPages={totalPages}
+              page={page}
+              pageSize={pageSize}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              loading={tableLoading}
+              onPageChange={setPage}
+              onSizeChange={(s) => {
+                setPageSize(s);
+                setPage(1);
+              }}
+              onSortChange={({ sortBy: sb, sortDir: sd }) => {
+                setSortBy(sb);
+                setSortDir(sd);
+                setPage(1);
+              }}
+            />
           </>
         )}
-
-        {/* ── API DOCS ───────────────────────────────────────────── */}
-        <div style={{ marginTop: 40 }}>
-          <div className="sec-hdr">
-            <span className="sec-title">API Requirements</span>
-            <span className="sec-line" />
-          </div>
-          <ApiDocs />
-        </div>
       </div>
     </div>
   );

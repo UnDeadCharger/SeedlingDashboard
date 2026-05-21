@@ -357,3 +357,39 @@ body {
   background: rgba(61, 220, 122, 0.2);
   border-color: var(--accent);
 }
+
+/* Status pills for DataTable cells */
+.spill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border: 1px solid transparent;
+}
+.sp-green {
+  background: rgba(61, 220, 122, 0.13);
+  color: var(--accent);
+  border-color: rgba(61, 220, 122, 0.3);
+}
+.sp-off {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-m);
+  border-color: var(--bdr);
+}
+.sp-amber {
+  background: rgba(245, 166, 35, 0.13);
+  color: var(--amber);
+  border-color: rgba(245, 166, 35, 0.3);
+}
+.sp-blue {
+  background: rgba(79, 195, 247, 0.13);
+  color: var(--blue);
+  border-color: rgba(79, 195, 247, 0.3);
+}
+.sp-alarm {
+  background: rgba(255, 82, 82, 0.13);
+  color: var(--alarm);
+  border-color: rgba(255, 82, 82, 0.3);
+}

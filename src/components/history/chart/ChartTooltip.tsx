@@ -1,3 +1,5 @@
+import dayjs from "@/utils/dayjsSetup";
+
 type ChartTooltipProps = {
   active?: boolean;
   payload?: {
@@ -31,7 +33,7 @@ function ChartTooltip({ active, payload, label, pctMode }: ChartTooltipProps) {
           letterSpacing: "0.05em",
         }}
       >
-        {label}
+        {dayjs(label).local().format("YYYY-MM-DD HH:mm:ss")}
       </div>
       {payload.map((p) => (
         <div

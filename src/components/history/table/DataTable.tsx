@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import dayjs from "@/utils/dayjsSetup";
 /**
  * Paginated data table using TanStack Table v8.
  * Sorting and pagination are server-side — parent controls page/sort state.
@@ -49,10 +50,9 @@ const PhaseBadge = ({ v }: { v?: string }) => {
 
 const fmtTs = (iso?: string) => {
   if (!iso) return "—";
-  const d = new Date(iso);
-  return d.toLocaleString("en-GB", { dateStyle: "short", timeStyle: "medium" });
+  // biome-ignore lint/style/useTemplate: <explanation>
+  return dayjs(iso.replace(" ", "T")).local().format("DD/MM/YYYY, HH:mm:ss");
 };
-
 // Primary columns — shown by default
 const PRIMARY_COLS = [
   ch.accessor("receivedAt", {
@@ -238,20 +238,24 @@ export function DataTable({
   };
 
   const sortIcon = (key: string | undefined) => {
-    if (sortBy !== key) return <span style={{ color: "var(--text-m)", marginLeft: 4 }}>⇅</span>;
+    const active = sortBy === key;
     return (
-      <span style={{ color: "var(--accent)", marginLeft: 4 }}>{sortDir === "asc" ? "↑" : "↓"}</span>
+      <span className={`sort-ico ${active ? "sort-active" : ""}`}>
+        {active ? (sortDir === "asc" ? " ↑" : " ↓") : " ↕"}
+      </span>
     );
   };
-
   return (
-    <div className="dt-wrap">
+    <div className="tbl-wrap" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       {/* Controls row */}
-      <div className="dt-controls">
-        <div className="dt-info">{loading ? "Loading…" : `${total.toLocaleString()} records`}</div>
+      <div
+        className="pg-row"
+        style={{ padding: "10px 14px", borderBottom: "1px solid var(--bdr)" }}
+      >
+        <div className="pg-info">{loading ? "Loading…" : `${total.toLocaleString()} records`}</div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <select
-            className="dt-size-sel"
+            className="date-input"
             value={pageSize}
             onChange={(e) => onSizeChange(Number(e.target.value))}
           >
@@ -261,7 +265,7 @@ export function DataTable({
               </option>
             ))}
           </select>
-          <button type="button" className="dt-col-btn" onClick={() => setShowToggle((v) => !v)}>
+          <button type="button" className="pg-btn" onClick={() => setShowToggle((v) => !v)}>
             ⚙ Columns
           </button>
         </div>
@@ -269,11 +273,29 @@ export function DataTable({
 
       {/* Column visibility toggle panel */}
       {showToggle && (
-        <div className="dt-col-panel">
-          <div className="dt-col-panel-title">Toggle columns</div>
-          <div className="dt-col-toggles">
+        <div
+          style={{
+            padding: "10px 14px",
+            borderBottom: "1px solid var(--bdr)",
+            background: "var(--surf2)",
+          }}
+        >
+          <div className="sort-ico" style={{ marginBottom: 8 }}>
+            Toggle columns
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {table.getAllColumns().map((col) => (
-              <label key={col.id} className="dt-col-toggle">
+              <label
+                key={col.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: "0.72rem",
+                  color: "var(--text-s)",
+                  cursor: "pointer",
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={col.getIsVisible()}
@@ -287,8 +309,8 @@ export function DataTable({
       )}
 
       {/* Table */}
-      <div className="dt-scroller">
-        <table className="dt-table">
+      <div style={{ overflowX: "auto" }}>
+        <table className="tbl">
           <thead>
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
@@ -299,7 +321,7 @@ export function DataTable({
                     // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
                     <th
                       key={header.id}
-                      className={`dt-th ${canSort ? "dt-th-sort" : ""}`}
+                      style={{ cursor: canSort ? "pointer" : "default" }}
                       onClick={() => canSort && handleSort(key)}
                     >
                       {flexRender(header.column.columnDef.header, header.getContext())}
@@ -313,21 +335,37 @@ export function DataTable({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={99} className="dt-empty">
+                <td
+                  colSpan={99}
+                  style={{
+                    padding: "40px 0",
+                    textAlign: "center",
+                    color: "var(--text-m)",
+                    fontStyle: "italic",
+                  }}
+                >
                   Loading…
                 </td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={99} className="dt-empty">
+                <td
+                  colSpan={99}
+                  style={{
+                    padding: "40px 0",
+                    textAlign: "center",
+                    color: "var(--text-m)",
+                    fontStyle: "italic",
+                  }}
+                >
                   No records in selected range.
                 </td>
               </tr>
             ) : (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="dt-row">
+                <tr key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="dt-td">
+                    <td key={cell.id}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -339,14 +377,14 @@ export function DataTable({
       </div>
 
       {/* Pagination */}
-      <div className="dt-pager">
-        <span className="dt-pager-info">
+      <div className="pg-row" style={{ padding: "12px 14px", borderTop: "1px solid var(--bdr)" }}>
+        <span className="pg-info">
           Page <strong>{page}</strong> of <strong>{totalPages || 1}</strong>
         </span>
-        <div className="dt-pager-btns">
+        <div className="pg-btns">
           <button
             type="button"
-            className="dt-pg-btn"
+            className="pg-btn"
             onClick={() => onPageChange(1)}
             disabled={page === 1}
           >
@@ -354,7 +392,7 @@ export function DataTable({
           </button>
           <button
             type="button"
-            className="dt-pg-btn"
+            className="pg-btn"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
           >
@@ -362,7 +400,7 @@ export function DataTable({
           </button>
           <button
             type="button"
-            className="dt-pg-btn"
+            className="pg-btn"
             onClick={() => onPageChange(page + 1)}
             disabled={page >= (totalPages || 1)}
           >
@@ -370,7 +408,7 @@ export function DataTable({
           </button>
           <button
             type="button"
-            className="dt-pg-btn"
+            className="pg-btn"
             onClick={() => onPageChange(totalPages)}
             disabled={page >= (totalPages || 1)}
           >

@@ -1,13 +1,18 @@
 import { CSV_FIELDS } from "@/constants";
+import dayjs from "@/utils/dayjsSetup";
 
 import type { SeedlingData } from "@/types";
 
-export const defaultFrom = () => new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 16);
-export const defaultTo = () => new Date().toISOString().slice(0, 16);
-
+export const defaultFrom = () => dayjs().subtract(7, "day").format("YYYY-MM-DDTHH:mm");
+export const defaultTo = () => dayjs().format("YYYY-MM-DDTHH:mm");
 export function fmtXLabel(iso: string) {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString("en", { month: "short", day: "numeric" })} ${String(d.getHours()).padStart(2, "0")}h`;
+  const d = dayjs(iso).local();
+  return `${d.format("MMM D")} ${d.format("HH")}h`;
+}
+export function fmtXLabelCondensed(iso: string) {
+  const d = dayjs(iso).local();
+
+  return d.format("HH") === "00" ? d.format("MMM D") : `${d.format("HH")}h`;
 }
 
 export function exportToCSV(data: Partial<SeedlingData>[], filename: string) {

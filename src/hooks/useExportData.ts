@@ -23,8 +23,6 @@ export function useExportData({
       });
 
       const res = await apiClient.get(`/seedling/export?${params}`);
-      console.log(res);
-      console.log("Fetched export data:", res.data);
       setData(res.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

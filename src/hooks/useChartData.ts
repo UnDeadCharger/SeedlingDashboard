@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { apiClient } from "@/api/apiClient";
+import dayjs from "@/utils/dayjsSetup";
 
 /* ─────────────────────────────────────────────────────────────── */
 
@@ -37,13 +38,15 @@ export function useChartData({
     setError(null);
     try {
       const params = new URLSearchParams({
-        ...(startTime && { from: startTime }),
-        ...(endTime && { to: endTime }),
+        ...(startTime && {
+          from: dayjs(startTime).utc().format("YYYY-MM-DD HH:mm:ss"),
+        }),
+        ...(endTime && {
+          to: dayjs(endTime).utc().format("YYYY-MM-DD HH:mm:ss"),
+        }),
       });
 
       const res = await apiClient.get(`/seedling/chart?${params}`);
-      console.log(res);
-      console.log("Fetched chart data:", res.data);
       setData(res.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

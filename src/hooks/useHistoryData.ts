@@ -1,30 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { apiClient } from "@/api/apiClient";
+import dayjs from "@/utils/dayjsSetup";
 
-/* ─────────────────────────────────────────────────────────────── */
-
-/**
- * Fetches paginated history records from the API.
- * Falls back to DUMMY data when API_URL is null/undefined.
- *
- * @param {object} params
- * @param {string}  params.apiUrl    – e.g. "/api/seedling/history"
- * @param {number}  params.page      – 1-indexed
- * @param {number}  params.pageSize  – rows per page (default 50)
- * @param {string}  params.startTime – ISO string
- * @param {string}  params.endTime   – ISO string
- * @param {string}  params.sortBy    – column key (default "receivedAt")
- * @param {"asc"|"desc"} params.sortDir
- *
- * @returns {{
- *   rows:       object[],
- *   total:      number,
- *   totalPages: number,
- *   loading:    boolean,
- *   error:      string|null,
- * }}
- */
 export function useHistoryData({
   page = 1,
   pageSize = 50,
@@ -37,24 +15,37 @@ export function useHistoryData({
   pageSize?: number;
   startTime?: string;
   endTime?: string;
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  sortBy?: any;
+  sortBy?: string;
   sortDir?: "asc" | "desc";
-}): {
-  rows: never[];
-  total: number;
-  totalPages: number;
-  loading: boolean;
-  error: string | null;
-} {
+}) {
   const [rows, setRows] = useState([]);
   const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Cache total — only re-fetch COUNT(*) when range actually changes
+  const cachedRangeRef = useRef<{
+    startTime?: string;
+    endTime?: string;
+    pageSize?: number;
+  }>({});
+  const cachedTotalRef = useRef<{ total: number; totalPages: number }>({
+    total: 0,
+    totalPages: 1,
+  });
 
   const fetchPage = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    const rangeChanged =
+      cachedRangeRef.current.startTime !== startTime ||
+      cachedRangeRef.current.endTime !== endTime ||
+      cachedRangeRef.current.pageSize !== pageSize;
+
+    // Only ask server for COUNT(*) when range changes or first load
+    const needsTotal = rangeChanged || cachedTotalRef.current.total === 0;
 
     try {
       const params = new URLSearchParams({
@@ -62,18 +53,33 @@ export function useHistoryData({
         pageSize: String(pageSize),
         sortBy,
         order: sortDir,
-        ...(startTime && { from: startTime }),
-        ...(endTime && { to: endTime }),
+        // Convert local input time → UTC before sending to API
+        ...(startTime && {
+          from: dayjs(startTime).utc().format("YYYY-MM-DD HH:mm:ss"),
+        }),
+        ...(endTime && {
+          to: dayjs(endTime).utc().format("YYYY-MM-DD HH:mm:ss"),
+        }),
+        ...(needsTotal && { includeTotal: "true" }),
       });
+
       const res = await apiClient.get(`/seedling/history?${params}`);
+
       setRows(res.data.rows);
-      setTotal(res.data.total);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(String(err));
+
+      if (needsTotal && res.data.total !== undefined) {
+        cachedTotalRef.current = {
+          total: res.data.total,
+          totalPages: res.data.totalPages,
+        };
+        cachedRangeRef.current = { startTime, endTime, pageSize };
       }
+
+      // Always sync state from cache
+      setTotal(cachedTotalRef.current.total);
+      setTotalPages(cachedTotalRef.current.totalPages);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -83,11 +89,5 @@ export function useHistoryData({
     fetchPage();
   }, [fetchPage]);
 
-  return {
-    rows,
-    total,
-    totalPages: Math.ceil(total / pageSize),
-    loading,
-    error,
-  };
+  return { rows, total, totalPages, loading, error };
 }

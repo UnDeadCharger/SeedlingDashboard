@@ -1,3 +1,5 @@
+import dayjs from "@/utils/dayjsSetup";
+
 function OnOffPill({ on }: { on: boolean | 0 | 1 }) {
   const active = on === true || on === 1;
   return (
@@ -79,11 +81,9 @@ export const TABLE_COLS: {
     key: "receivedAt",
     label: "receivedAt",
     sortable: true,
-    render: (v: string | number | Date) =>
-      new Date(v).toLocaleString("en-GB", {
-        dateStyle: "short",
-        timeStyle: "medium",
-      }),
+    render: (v: string) => {
+      return dayjs(v).local().format("DD/MM/YYYY, HH:mm:ss");
+    },
   },
   {
     key: "tempLvl",
